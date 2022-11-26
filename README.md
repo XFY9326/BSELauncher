@@ -1,6 +1,6 @@
 # BSE Launcher
 
-Advanced Parallel Run Tool for BristolStockExchange
+Advanced Parallel Run Tool for [BristolStockExchange](https://github.com/davecliff/BristolStockExchange)
 
 Meet your pursuit of execution speed and high CPU usage 😊
 
