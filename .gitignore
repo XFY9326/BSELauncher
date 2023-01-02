@@ -72,4 +72,6 @@ fabric.properties
 .idea/caches/build_file_checksums.ser
 
 # Test cache
-outputs_test
+outputs_test/
+results/
+outputs/

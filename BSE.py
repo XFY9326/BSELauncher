@@ -1926,7 +1926,7 @@ def market_session(sess_id, starttime, endtime, trader_spec, order_schedule, avg
     populate_verbose = False
 
     if dump_dir is None:
-        dump_dir = "."
+        dump_dir = "BSEUtils"
     if not os.path.exists(dump_dir):
         os.makedirs(dump_dir)
     elif not os.path.isdir(dump_dir):
