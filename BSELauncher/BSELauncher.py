@@ -1,4 +1,5 @@
 import os
+import sys
 import math
 import random
 import traceback
@@ -7,15 +8,19 @@ from multiprocessing import Pool, cpu_count
 
 try:
     from tqdm import tqdm
-except ImportError:
-    raise ImportError("Dependency 'tqdm' is required! Please run 'python -m pip install tqdm' to install it!")
+except ModuleNotFoundError:
+    print("Dependency 'tqdm' is required! Please run 'python -m pip install tqdm' to install it!")
+    sys.exit(1)
 
 from .BSEConfig import MarketSessionSpec
 
 
 # For internal usage only
 def _raise_error(ex):
-    traceback.print_exception(ex)
+    if ex is not KeyboardInterrupt:
+        traceback.print_exception(ex)
+    else:
+        raise ex
 
 
 # For internal usage only
@@ -157,6 +162,11 @@ def launch_market_tasks(market_session_func: callable, *tasks: BSEMarketTask, n:
                     )
                 p.close()
                 p.join()
+        except KeyboardInterrupt:
+            if p is not None:
+                p.terminate()
+                p = None
+            sys.exit(0)
         finally:
             if p is not None:
                 p.terminate()
@@ -176,6 +186,11 @@ def launch_market_tasks_in_parallel(market_session_func: callable, *tasks: BSEMa
                 task.launch_in_pool(market_session_func, n, p, lambda: pbar.update())
             p.close()
             p.join()
+    except KeyboardInterrupt:
+        if p is not None:
+            p.terminate()
+            p = None
+        sys.exit(0)
     finally:
         if p is not None:
             p.terminate()
