@@ -41,9 +41,9 @@ Related tools have been stored in the BSEUtils folder
 1. Download the 'BSE.py' file using the 'downloadBSE' script supported by the platform or download it manually.
 2. Install Cython using command `python -m pip install cython`.
 3. Install the relevant compiler tools required by Cython. e.g. VC++ or GCC
-4. Compile 'BSE.py' file using the 'build' script supported by the platform or execute it manually.
-5. Copy 'BSE.XXXX.pyd' to the directory at the same level as the project python file.
-6. (Optional) Rename 'BSE.XXXX.pyd' to 'BSE.pyd'.
+4. Compile 'BSE.py' file using command `python setup.py build_ext --inplace`.
+5. Copy 'BSE.XXXX.pyd' or 'BSE.XXXX.so' to the directory at the same level as the project python file.
+6. (Optional) Rename 'BSE.XXXX.pyd' or 'BSE.XXXX.so' to 'BSE.pyd' or 'BSE.so'.
 7. Import BSE as usual.
 
 After testing, it can reduce the time consumption by about one-third.

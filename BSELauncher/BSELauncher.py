@@ -145,11 +145,14 @@ class BSEMarketTask:
 # Create a process for each task and run it in parallel
 # Note: Running multiple processes does not produce any output on the console
 def launch_market_tasks(market_session_func: callable, *tasks: BSEMarketTask, n: int = 1, seed: Optional[int] = None, workers: Optional[int] = None):
-    if len(tasks) == 1:
+    if n < 1:
+        raise ValueError
+    tasks_size = len(tasks)
+    if tasks_size == 1:
         tasks[0].launch(n, seed)
     else:
         p = None
-        workers = int(math.ceil(cpu_count() / 2)) if workers is None else workers
+        workers = min(tasks_size, int(math.ceil(cpu_count() / 2)) if workers is None else workers)
         try:
             with tqdm(total=len(tasks)) as pbar:
                 p = Pool(processes=workers)
@@ -163,10 +166,7 @@ def launch_market_tasks(market_session_func: callable, *tasks: BSEMarketTask, n:
                 p.close()
                 p.join()
         except KeyboardInterrupt:
-            if p is not None:
-                p.terminate()
-                p = None
-            sys.exit(0)
+            pass
         finally:
             if p is not None:
                 p.terminate()
@@ -177,20 +177,23 @@ def launch_market_tasks(market_session_func: callable, *tasks: BSEMarketTask, n:
 # Faster than 'launch_market_tasks' only when the amount of tasks is small but the amount of sessions is large
 # Note: Running multiple processes does not produce any output on the console
 def launch_market_tasks_in_parallel(market_session_func: callable, *tasks: BSEMarketTask, n: int = 1, workers: Optional[int] = None):
-    p = None
-    workers = int(math.ceil(cpu_count() / 2)) if workers is None else workers
-    try:
-        with tqdm(total=len(tasks) * n) as pbar:
-            p = Pool(processes=workers)
-            for task in tasks:
-                task.launch_in_pool(market_session_func, n, p, lambda: pbar.update())
-            p.close()
-            p.join()
-    except KeyboardInterrupt:
-        if p is not None:
-            p.terminate()
-            p = None
-        sys.exit(0)
-    finally:
-        if p is not None:
-            p.terminate()
+    if n < 1:
+        raise ValueError
+    if n == 1:
+        launch_market_tasks(market_session_func=market_session_func, *tasks, n=n, workers=workers)
+    else:
+        tasks_size = len(tasks) * n
+        p = None
+        workers = min(tasks_size, int(math.ceil(cpu_count() / 2)) if workers is None else workers)
+        try:
+            with tqdm(total=tasks_size) as pbar:
+                p = Pool(processes=workers)
+                for task in tasks:
+                    task.launch_in_pool(market_session_func, n, p, lambda: pbar.update())
+                p.close()
+                p.join()
+        except KeyboardInterrupt:
+            pass
+        finally:
+            if p is not None:
+                p.terminate()

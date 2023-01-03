@@ -36,6 +36,20 @@ if __name__ == '__main__':
         )
     )
 
+    # Before Cython
+    # i7-8750H + 16GB
+    # 100%|██████████| 5/5 [01:58<00:00, 23.76s/it]
+    # launch_market_tasks: 118.82856316200001s
+    # 100%|██████████| 250/250 [01:51<00:00,  2.25it/s]
+    # launch_market_tasks_in_parallel: 111.276186845s
+
+    # After Cython
+    # i7-8750H + 16GB
+    # 100%|██████████| 5/5 [01:02<00:00, 12.44s/it]
+    # launch_market_tasks: 62.283330947s
+    # 100%|██████████| 250/250 [00:52<00:00,  4.78it/s]
+    # launch_market_tasks_in_parallel: 52.34778339s
+
     tasks = [
         BSEMarketTask(f"Test_{i}", market_spec, f"{OUTPUT_DIR}/{i}")
         for i in range(TASKS_AMOUNT)
