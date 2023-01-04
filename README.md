@@ -51,5 +51,5 @@ After testing, it can reduce the time consumption by about one-third.
 
 This BSE.py script is based on commit '29b943e'.
 
-The BSE used here adds the parameter specifying the output file path.
+The BSE used here adds the parameter specifying the output file path and set `verbose=False` in `Trader_PRZI`.
 
