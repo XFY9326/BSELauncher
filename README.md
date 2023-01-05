@@ -39,11 +39,12 @@ Cython speeds up operation by compiling Python files into native library files s
 Related tools have been stored in the BSEUtils folder
 
 1. Download the 'BSE.py' file from [GitHub Mirror](https://raw.githubusercontent.com/XFY9326/BristolStockExchange/master/BSE.py).
-2. Install Cython using command `python -m pip install cython`.
+2. Install Cython using command `python -m pip install cython mypy`.
 3. Install the relevant compiler tools required by Cython. e.g. VC++ or GCC
 4. Compile 'BSE.py' file using command `python setup.py build_ext --inplace`.
-5. Copy 'BSE.XXXX.pyd' or 'BSE.XXXX.so' to the directory at the same level as the project python file.
-6. Import BSE as usual.
+5. (Optional) Create 'BSE.pyi' interface using command `stubgen --parse-only --no-import --output . BSE.py`.
+6. Copy 'BSE.XXXX.pyd' or 'BSE.XXXX.so' to the directory at the same level as the project python file.
+7. Import BSE as usual.
 
 After testing, it can reduce the time consumption by about one-third.
 

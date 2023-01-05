@@ -78,3 +78,4 @@ outputs/
 build/
 *.so
 *.pyd
+*.pyi

@@ -5,3 +5,4 @@ if [ -d "build" ]; then
 fi
 
 python setup.py --quiet build_ext --inplace
+stubgen --parse-only --no-import --output . BSE.py

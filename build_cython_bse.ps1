@@ -5,3 +5,4 @@ if (Test-Path "build") {
 }
 
 python setup.py --quiet build_ext --inplace
+stubgen --parse-only --no-import --output . BSE.py

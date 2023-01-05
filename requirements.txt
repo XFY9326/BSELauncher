@@ -1,3 +1,4 @@
 Cython
+mypy
 tqdm
 setuptools
