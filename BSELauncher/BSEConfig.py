@@ -37,20 +37,24 @@ class TimeMode(str, Enum):
 class TraderSpec:
     def __init__(
             self,
-            trader: Trader,
+            trader: Union[Trader, str],
             amount: int,
             args: Optional[dict] = None
     ):
-        self.trader: Trader = trader
+        self.trader: Union[Trader, str] = trader
         self.amount: int = amount
         self.args: Optional[dict] = args
 
     def build(self) -> tuple:
         assert self.amount >= 0, f"Trader amount error! Value: {self.amount}"
-        if self.args is None or len(self.args) == 0:
-            return self.trader.value, self.amount
+        if isinstance(self.trader, Trader):
+            trader = self.trader.value
         else:
-            return self.trader.value, self.amount, self.args
+            trader = str(self.trader)
+        if self.args is None or len(self.args) == 0:
+            return trader, self.amount
+        else:
+            return trader, self.amount, self.args
 
     def __repr__(self) -> str:
         return str(self.build())
@@ -88,20 +92,24 @@ class OrderStrategy:
             self,
             time: Tuple[int, int],
             ranges: List[PriceStrategy],
-            step_mode: StepMode
+            step_mode: Union[StepMode, str]
     ):
         self.time: Tuple[int, int] = time
         self.ranges: List[PriceStrategy] = ranges
-        self.mode: StepMode = step_mode
+        self.mode: Union[StepMode, str] = step_mode
 
     def build(self) -> Dict[str, Union[int, List[Tuple[int, int]], str]]:
         assert self.time[1] >= self.time[0] >= 0, f"OrderStrategy time error! Value: {self.time}"
         assert len(self.ranges) > 0, "OrderStrategy ranges empty!"
+        if isinstance(self.mode, StepMode):
+            mode = self.mode.value
+        else:
+            mode = str(self.mode)
         return {
             "from": self.time[0],
             "to": self.time[1],
             "ranges": [i.build() for i in self.ranges],
-            "stepmode": self.mode.value
+            "stepmode": mode
         }
 
     def __repr__(self) -> str:
@@ -114,10 +122,10 @@ class OrderSpec:
             supply: List[OrderStrategy],
             demand: List[OrderStrategy],
             interval: int,
-            time_mode: TimeMode
+            time_mode: Union[TimeMode, str]
     ):
         self.interval: int = interval
-        self.mode: TimeMode = time_mode
+        self.mode: Union[TimeMode, str] = time_mode
         self.supply: List[OrderStrategy] = supply
         self.demand: List[OrderStrategy] = demand
 
@@ -127,11 +135,15 @@ class OrderSpec:
 
     def build(self) -> Dict[str, Union[List[OrderStrategy], int, str]]:
         assert self.interval >= 0, f"OrderSpec interval error! Value: {self.interval}"
+        if isinstance(self.mode, TimeMode):
+            mode = self.mode.value
+        else:
+            mode = str(self.mode)
         return {
             "sup": [i.build() for i in self.supply],
             "dem": [i.build() for i in self.demand],
             "interval": self.interval,
-            "timemode": self.mode.value
+            "timemode": mode
         }
 
     def __repr__(self) -> str:

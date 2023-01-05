@@ -136,6 +136,13 @@ def combine_avg_balance_csv_files(output_dir: str, session_id: str):
                 f_in.write(f_out.read())
 
 
+def _get_default_worker_size(min_size: int, setup_workers: Optional[int]) -> int:
+    if setup_workers is None:
+        return min(min_size, int(math.ceil(cpu_count() / 2)))
+    else:
+        return setup_workers
+
+
 # Create a process for each task and run it in parallel
 # Note: Running multiple processes does not produce any output on the console
 def launch_market_tasks(
@@ -151,11 +158,9 @@ def launch_market_tasks(
     if tasks_size == 1:
         tasks[0].launch(n, seed)
     else:
-        p = None
-        workers = min(tasks_size, int(math.ceil(cpu_count() / 2)) if workers is None else workers)
-        try:
-            with tqdm(total=len(tasks)) as pbar:
-                p = Pool(processes=workers)
+        workers = _get_default_worker_size(tasks_size, workers)
+        with tqdm(total=len(tasks)) as pbar:
+            with Pool(processes=workers) as p:
                 for task in tasks:
                     p.apply_async(
                         task.launch,
@@ -165,11 +170,6 @@ def launch_market_tasks(
                     )
                 p.close()
                 p.join()
-        except KeyboardInterrupt:
-            pass
-        finally:
-            if p is not None:
-                p.terminate()
 
 
 # Create a process for each session in each task and run it in parallel
@@ -189,11 +189,9 @@ def launch_market_tasks_in_parallel(
         launch_market_tasks(market_session_func=market_session_func, *tasks, n=n, workers=workers)
     else:
         tasks_size = len(tasks) * n
-        p = None
-        workers = min(tasks_size, int(math.ceil(cpu_count() / 2)) if workers is None else workers)
-        try:
-            with tqdm(total=tasks_size) as pbar:
-                p = Pool(processes=workers)
+        workers = _get_default_worker_size(tasks_size, workers)
+        with tqdm(total=tasks_size) as pbar:
+            with Pool(processes=workers) as p:
                 for task in tasks:
                     task.launch_in_pool(market_session_func, n, p, pbar.update)
                 p.close()
@@ -201,8 +199,3 @@ def launch_market_tasks_in_parallel(
                 if combine_avg_balances:
                     for task in tasks:
                         combine_avg_balance_csv_files(task.output_dir, task.session_id)
-        except KeyboardInterrupt:
-            pass
-        finally:
-            if p is not None:
-                p.terminate()
