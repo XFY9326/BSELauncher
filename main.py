@@ -47,5 +47,5 @@ if __name__ == '__main__':
         shutil.rmtree(OUTPUT_DIR)
 
     start = time.perf_counter()
-    launch_market_tasks_in_parallel(market_session, *tasks, n=SESSIONS_AMOUNT)
+    launch_tasks_sessions_in_parallel(market_session, *tasks, session_num=SESSIONS_AMOUNT)
     print(f"launch_market_tasks_in_parallel: {time.perf_counter() - start}s")

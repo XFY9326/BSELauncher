@@ -57,7 +57,7 @@ def show_seconds_progress(
         output_dir: str,
         task_id: Union[str, Iterable[str]],
         total_seconds: int,
-        refresh_seconds: int = 1
+        refresh_seconds: float = 1.0
 ):
     last_progress = _get_all_csv_progress(output_dir, task_id)
     last_num = sum(last_progress.values())
