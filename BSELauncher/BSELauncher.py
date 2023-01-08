@@ -1,7 +1,7 @@
 import os
 import sys
-import math
 import random
+import inspect
 import traceback
 from typing import Optional, TextIO
 from multiprocessing import Pool, cpu_count
@@ -13,6 +13,7 @@ except ModuleNotFoundError:
     sys.exit(1)
 
 from .BSEConfig import MarketSessionSpec
+from .utils import combine_session_avg_balance_csv_files
 
 
 # For internal usage only
@@ -61,11 +62,11 @@ def launch_market_session(
 class BSEMarketTask:
     def __init__(
             self,
-            session_id: str,
+            task_id: str,
             spec: MarketSessionSpec,
             output_dir: Optional[str] = None
     ):
-        self.session_id: str = session_id
+        self.task_id: str = task_id
         self.spec: MarketSessionSpec = spec
         self.output_dir: Optional[str] = output_dir
 
@@ -77,10 +78,10 @@ class BSEMarketTask:
             elif not os.path.isdir(output_dir):
                 raise FileExistsError(f"A file with the same name already exists but is not a folder! '{output_dir}'")
 
-    def _launch(self, market_session_func: callable, index: int, spec_dict: dict, dump_f: TextIO):
+    def _launch(self, market_session_func: callable, session_index: str, spec_dict: dict, dump_f: TextIO):
         _launch_market_session(
             market_session_func=market_session_func,
-            session_id=f"{self.session_id}_S{index}",
+            session_id=f"{self.task_id}_S{session_index}",
             spec_dict=spec_dict,
             avg_balance_file=dump_f,
             output_dir=self.output_dir
@@ -94,15 +95,17 @@ class BSEMarketTask:
         self._prepare_output_dir(self.output_dir)
         if seed is not None:
             random.seed(seed)
-        dump_file_path = os.path.join(self.output_dir, f"{self.session_id}_avg_balance.csv")
+        dump_file_path = os.path.join(self.output_dir, f"{self.task_id}_avg_balance.csv")
         with open(dump_file_path, mode="w", encoding="utf-8") as f:
+            session_index_len = len(str(n - 1))
             for i in range(n):
-                self._launch(market_session_func, i, market_params, f)
+                session_index = f"{i:0{session_index_len}d}"
+                self._launch(market_session_func, session_index, market_params, f)
 
-    def _launch_in_parallel(self, market_session_func: callable, index: int, spec_dict: dict):
-        dump_file_dir = os.path.join(self.output_dir, f"{self.session_id}_S{index}_avg_balance.csv")
+    def _launch_in_parallel(self, market_session_func: callable, session_index: str, spec_dict: dict):
+        dump_file_dir = os.path.join(self.output_dir, f"{self.task_id}_S{session_index}_avg_balance.csv")
         with open(dump_file_dir, mode="w", encoding="utf-8") as f:
-            self._launch(market_session_func, index, spec_dict, f)
+            self._launch(market_session_func, session_index, spec_dict, f)
 
     # Running in parallel can speed things up, but using the specified seed results in exactly the same output
     # So here you can't set the random seed but use the default
@@ -111,36 +114,28 @@ class BSEMarketTask:
             raise ValueError("n <= 0")
         market_params = self.spec.build()
         self._prepare_output_dir(self.output_dir)
+        session_index_len = len(str(n - 1))
         for i in range(n):
+            session_index = f"{i:0{session_index_len}d}"
             pool.apply_async(
                 self._launch_in_parallel,
-                args=(market_session_func, i, market_params,),
+                args=(market_session_func, session_index, market_params,),
                 callback=lambda _: complete_callback(),
                 error_callback=_raise_error
             )
 
 
-def combine_avg_balance_csv_files(output_dir: str, session_id: str):
-    f_start = f"{session_id}_S"
-    f_end = "_avg_balance.csv"
-    avg_balance_files = [
-        (f, int(f[len(f_start):-len(f_end)]))
-        for f in os.listdir(output_dir)
-        if f.startswith(f_start) and f.endswith(f_end)
-    ]
-    avg_balance_files = sorted(avg_balance_files, key=lambda x: x[1])
-    dump_file_path = os.path.join(output_dir, f"{session_id}_avg_balance.csv")
-    with open(dump_file_path, mode="wb") as f_in:
-        for f_name, _ in avg_balance_files:
-            with open(os.path.join(output_dir, f_name), mode="rb") as f_out:
-                f_in.write(f_out.read())
-
-
 def _get_default_worker_size(min_size: int, setup_workers: Optional[int]) -> int:
     if setup_workers is None:
-        return min(min_size, int(math.ceil(cpu_count() / 2)))
+        return max(1, min(min_size, cpu_count() - 1))
     else:
         return setup_workers
+
+
+def _check_market_session_func(market_session_func: callable):
+    spec = inspect.getfullargspec(market_session_func)
+    if "dump_dir" not in spec.args:
+        raise TypeError("The 'market_session' function expects a parameter named 'dump_dir'!")
 
 
 # Create a process for each task and run it in parallel
@@ -154,6 +149,7 @@ def launch_market_tasks(
 ):
     if n < 1:
         raise ValueError
+    _check_market_session_func(market_session_func)
     tasks_size = len(tasks)
     if tasks_size == 1:
         tasks[0].launch(n, seed)
@@ -185,6 +181,7 @@ def launch_market_tasks_in_parallel(
 ):
     if n < 1:
         raise ValueError
+    _check_market_session_func(market_session_func)
     if n == 1:
         launch_market_tasks(market_session_func=market_session_func, *tasks, n=n, workers=workers)
     else:
@@ -198,4 +195,4 @@ def launch_market_tasks_in_parallel(
                 p.join()
                 if combine_avg_balances:
                     for task in tasks:
-                        combine_avg_balance_csv_files(task.output_dir, task.session_id)
+                        combine_session_avg_balance_csv_files(task.output_dir, task.task_id)

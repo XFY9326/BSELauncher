@@ -25,10 +25,24 @@ Meet your pursuit of execution speed and high CPU usage 😊
 3. Import code:
 
     ```python
-    from BSELauncher import *
-    ```
+   from BSELauncher import *
+   ```
 
 4. For more usage methods, you can view the test code in main.py
+
+## Progress bar by seconds
+
+By default, the progress bar of BSE Launcher shows the progress of Task or Task and Sessions.
+
+It is not very useful when a single task takes a very long time.
+
+If you want to display the overall progress in seconds, you can use this function:
+
+```python
+from BSELauncher.utils import show_seconds_progress
+```
+
+The specific usage can be viewed in `seconds_progress.py`
 
 ## Need to run faster?
 

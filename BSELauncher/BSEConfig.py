@@ -15,9 +15,9 @@ class Trader(str, Enum):
     ZIP = "ZIP"
     # Parameterised-Response Zero Intelligence
     PRZI = "PRZI"
-    # PRZI-Stochastic-Hillclimber
+    # PRZI with Stochastic Hillclimber
     PRSH = "PRSH"
-    # Parameterized-Response zero-intelligence with Differential Evolution
+    # PRZI with Differential Evolution
     PRDE = "PRDE"
 
 
