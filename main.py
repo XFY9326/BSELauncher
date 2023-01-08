@@ -16,7 +16,8 @@ if __name__ == '__main__':
     trader_spec = [
         TraderSpec(Trader.ZIP, 10),
         TraderSpec(Trader.ZIC, 10),
-        TraderSpec(Trader.SHVR, 10)
+        TraderSpec(Trader.SHVR, 10),
+        TraderSpec(Trader.PRDE, 10, {'k': 4, 's_min': -1.0, 's_max': +1.0})
     ]
     order_spec = [
         OrderStrategy(
