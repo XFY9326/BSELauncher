@@ -8,7 +8,7 @@ except ModuleNotFoundError:
     print("Dependency 'tqdm' is required! Please run 'python -m pip install tqdm' to install it!")
     sys.exit(1)
 
-from .BSEMarketTask import BSEMarketTask
+from .BSETask import BSEMarketTask
 from .utils.process import raise_process_error, get_default_worker_size
 
 

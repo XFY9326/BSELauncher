@@ -1,6 +1,30 @@
 import os
 import io
-from typing import Optional, Tuple, List
+from typing import Union, Optional, Tuple, List, Iterable
+
+
+def _all_file_exists(files_path: Iterable[str]) -> bool:
+    for file_path in files_path:
+        if not os.path.isfile(file_path):
+            return False
+    return True
+
+
+def get_task_config_files(output_dir: str, task_id: Union[str, Iterable[str]]) -> List[str]:
+    if isinstance(task_id, str):
+        task_id = [task_id]
+    result = []
+    for i in task_id:
+        f_path = os.path.join(output_dir, f"{i}.json")
+        if os.path.isfile(f_path):
+            result.append(f_path)
+    return result
+
+
+def _generate_task_config_files(output_dir: str, task_id: Union[str, Iterable[str]]) -> List[str]:
+    if isinstance(task_id, str):
+        task_id = [task_id]
+    return [os.path.join(output_dir, f"{i}.json") for i in task_id]
 
 
 def get_session_avg_balance_csv_files(output_dir: str, task_id: str) -> List[Tuple[str, int]]:

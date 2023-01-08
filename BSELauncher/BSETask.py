@@ -9,9 +9,10 @@ from .BSEInterface import _call_market_session_func
 from .utils.process import raise_process_error
 from .utils import combine_session_avg_balance_csv_files
 
+BSE_MARKET_TASK_CONFIG_VERSION = 1
+
 
 class BSEMarketTask:
-    _TASK_CONFIG_VERSION = 1
 
     def __init__(
             self,
@@ -45,28 +46,6 @@ class BSEMarketTask:
 
     def _generate_avg_balance_path(self, prefix: str) -> str:
         return os.path.join(self.output_dir, f"{prefix}_avg_balance.csv")
-
-    def _save_task_config(
-            self,
-            session_num: int,
-            market_params: dict,
-            session_ids: List[str],
-            dump_avg_balance: List[str],
-            seed: Optional[int] = None
-    ):
-        task_config = {
-            "version": self._TASK_CONFIG_VERSION,
-            "task_id": self.task_id,
-            "session_num": session_num,
-            "session_ids": session_ids,
-            "market_params": market_params,
-            "seed": seed,
-            "output_dir": self.output_dir,
-            "dump_avg_balance": dump_avg_balance
-        }
-        config_path = os.path.join(self.output_dir, f"{self.task_id}.json")
-        with open(config_path, "w", encoding="utf-8") as f:
-            json.dump(task_config, f, ensure_ascii=False)
 
     # Use seeds to ensure reproducible results
     def launch(
@@ -144,3 +123,25 @@ class BSEMarketTask:
                 callback=_task_complete_handler,
                 error_callback=raise_process_error
             )
+
+    def _save_task_config(
+            self,
+            session_num: int,
+            market_params: dict,
+            session_ids: List[str],
+            dump_avg_balance: List[str],
+            seed: Optional[int] = None
+    ):
+        task_config = {
+            "version": BSE_MARKET_TASK_CONFIG_VERSION,
+            "task_id": self.task_id,
+            "session_num": session_num,
+            "session_ids": session_ids,
+            "market_params": market_params,
+            "seed": seed,
+            "output_dir": self.output_dir,
+            "dump_avg_balance": dump_avg_balance
+        }
+        config_path = os.path.join(self.output_dir, f"{self.task_id}.json")
+        with open(config_path, "w", encoding="utf-8") as f:
+            json.dump(task_config, f, ensure_ascii=False)
