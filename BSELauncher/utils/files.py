@@ -27,14 +27,25 @@ def _generate_task_config_files(output_dir: str, task_id: Union[str, Iterable[st
     return [os.path.join(output_dir, f"{i}.json") for i in task_id]
 
 
-def get_session_avg_balance_csv_files(output_dir: str, task_id: str) -> List[Tuple[str, int]]:
+def _get_session_csv_files(output_dir: str, task_id: str, file_end: str) -> List[Tuple[str, int]]:
     f_start = f"{task_id}_S"
-    f_end = "_avg_balance.csv"
     return [
-        (f, int(f[len(f_start):-len(f_end)]))
+        (f, int(f[len(f_start):-len(file_end)]))
         for f in os.listdir(output_dir)
-        if f.startswith(f_start) and f.endswith(f_end)
+        if f.startswith(f_start) and f.endswith(file_end)
     ]
+
+
+def get_session_avg_balance_csv_files(output_dir: str, task_id: str) -> List[Tuple[str, int]]:
+    return _get_session_csv_files(output_dir, task_id, "_avg_balance.csv")
+
+
+def get_session_lob_frames_csv_files(output_dir: str, task_id: str) -> List[Tuple[str, int]]:
+    return _get_session_csv_files(output_dir, task_id, "_LOB_frames.csv")
+
+
+def get_session_strategies_csv_files(output_dir: str, task_id: str) -> List[Tuple[str, int]]:
+    return _get_session_csv_files(output_dir, task_id, "_strats.csv")
 
 
 def combine_session_avg_balance_csv_files(output_dir: str, task_id: str) -> str:
